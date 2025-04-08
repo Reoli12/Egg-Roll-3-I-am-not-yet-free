@@ -51,10 +51,14 @@ class EggRollModel:
         sorted_coords: list[Point] = self._rearrange_based_on_direction(self._egg_coords, user_move)
         
         resulting_grid = [list(row) for row in grid]
+        surviving_egg_coords: list[Point] = []
         for point in sorted_coords:
             next_i, next_j = self._get_direction(user_move)
             next_i += point.x
             next_j += point.y
+
+            if not self._is_inside(next_i, next_j):
+                surviving_egg_coords.append(point)
 
         return tuple(tuple(row) for row in resulting_grid)
     
