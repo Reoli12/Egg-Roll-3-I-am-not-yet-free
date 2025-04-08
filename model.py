@@ -20,9 +20,9 @@ class EggRollModel:
         self._remaining_moves = move_count
 
     def _is_inside(self, row_num: int, col_num: int) -> bool:
-        return 0 <= row_num < self._len_y and 0 <= col_num <= self._len_x
+        return 0 <= row_num < self._len_y and 0 <= col_num < self._len_x
     
-    def process_moves(self, user_moves: list[Order]) -> Grid:
+    def roll(self, user_moves: list[Order]) -> Grid:
         if not user_moves:
             raise ValueError('should not happen! ')
         
@@ -40,12 +40,36 @@ class EggRollModel:
                 break
         return current_grid
         
-    def _sort_based_on_direction(self, coords: list[Point], ) -> list[Point]:
-        ...
-
+    def _rearrange_based_on_direction(self, coords: list[Point], direction: Order) -> list[Point]:
+        match direction:
+            case Order.RIGHT | Order.BACK:
+                return coords[::-1]
+            case _:
+                return coords
+                
     def _step_once(self, grid: Grid, user_move: Order) -> Grid:
-        sorted_coords: list[Point] = self._sort_based_on_direction(self._egg_coords)
-        ...
+        sorted_coords: list[Point] = self._rearrange_based_on_direction(self._egg_coords, user_move)
+        
+        resulting_grid = [list(row) for row in grid]
+        for point in sorted_coords:
+            next_i, next_j = self._get_direction(user_move)
+            next_i += point.x
+            next_j += point.y
+
+        return tuple(tuple(row) for row in resulting_grid)
+    
+    def _get_direction(self, user_move: Order) -> tuple[int, int]:
+        match user_move:
+            case Order.FRONT:
+                return 0, -1
+            case Order.BACK:
+                return 0, 1
+            case Order.LEFT:
+                return -1, 0
+            case Order.RIGHT:
+                return 1, 0
+
+
     
 
             
