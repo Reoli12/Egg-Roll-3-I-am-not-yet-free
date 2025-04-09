@@ -1,5 +1,5 @@
 from project_types import Arrow, Order, Grid, Point
-# from tile import Tile
+from tile import Egg, Grass
 
 
 class EggRollModel:
@@ -57,12 +57,23 @@ class EggRollModel:
             next_i, next_j = self._get_direction(user_move)
             next_i += point.x
             next_j += point.y
+            collided_tile = resulting_grid[next_i][next_j]
 
             if not self._is_inside(next_i, next_j):
                 surviving_egg_coords.append(point)
                 continue
 
-            
+            if collided_tile.will_block_egg:
+                surviving_egg_coords.append(point)
+            else:
+                resulting_grid[point.x][point.y] = Egg(point)
+                surviving_egg_coords.append(Point(next_i, next_j))
+
+            if collided_tile.will_eat_egg:
+                assert not collided_tile.will_block_egg
+                self._points += collided_tile.points_added
+                resulting_grid[point.x][point.y] = Grass(point)
+
 
         return tuple(tuple(row) for row in resulting_grid)
     
