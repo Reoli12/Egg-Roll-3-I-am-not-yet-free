@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
+from tile import Tile
 
 type Grid = tuple[tuple[Tile, ...], ...]
 
@@ -20,9 +21,10 @@ class Point:
     x: int
     y: int
 
-class Tile(Enum):
-    GRASS = auto()
-    EGG = auto()
-    BRICK = auto()
-    PAN = auto()
-    NEST = auto()
+# class Tile(Enum):
+#     GRASS = auto()
+#     EGG = auto()
+#     BRICK = auto()
+#     PAN = auto()
+#     NEST = auto()
+

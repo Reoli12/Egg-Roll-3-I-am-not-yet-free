@@ -1,4 +1,5 @@
-from project_types import Tile, Arrow, Order, Grid, Point
+from project_types import Arrow, Order, Grid, Point
+# from tile import Tile
 
 
 class EggRollModel:
@@ -14,8 +15,8 @@ class EggRollModel:
         self._len_y = len(self._current_grid)
         self._len_x = len(self._current_grid[0])
         self._egg_coords = [Point(i, j) for i in range(self._len_x) for j in range(self._len_y)
-                            if self._current_grid[i][j] is Tile.EGG]
-        
+                            if self._current_grid[i][j].display is '🥚']
+
         self._previous_moves: list[Arrow] = []
         self._remaining_moves = move_count
 
@@ -59,6 +60,9 @@ class EggRollModel:
 
             if not self._is_inside(next_i, next_j):
                 surviving_egg_coords.append(point)
+                continue
+
+            
 
         return tuple(tuple(row) for row in resulting_grid)
     
