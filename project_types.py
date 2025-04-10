@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum, auto
-from tile import Tile
+# from tile import Tile
 
-type Grid = tuple[tuple[Tile, ...], ...]
 
 class Arrow(Enum):
     UP = auto()

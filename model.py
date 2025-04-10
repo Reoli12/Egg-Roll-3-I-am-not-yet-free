@@ -1,5 +1,6 @@
-from project_types import Arrow, Order, Grid, Point
-from tile import Egg, Grass
+from project_types import Arrow, Order, Point
+from tile import Egg, Grass, EmptyNest, OccupiedNest
+from type_aliases import Grid
 
 
 class EggRollModel:
@@ -53,10 +54,12 @@ class EggRollModel:
         
         resulting_grid = [list(row) for row in grid]
         surviving_egg_coords: list[Point] = []
+
         for point in sorted_coords:
             next_i, next_j = self._get_direction(user_move)
             next_i += point.x
             next_j += point.y
+            next_point = Point(next_i, next_j)
             collided_tile = resulting_grid[next_i][next_j]
 
             if not self._is_inside(next_i, next_j):
@@ -66,14 +69,18 @@ class EggRollModel:
             if collided_tile.will_block_egg:
                 surviving_egg_coords.append(point)
             else:
-                resulting_grid[point.x][point.y] = Egg(point)
-                surviving_egg_coords.append(Point(next_i, next_j))
+                resulting_grid[next_i][next_j] = Egg(next_point)
+                resulting_grid[point.x][point.y] = Grass(point)
+                surviving_egg_coords.append(next_point)
 
             if collided_tile.will_eat_egg:
                 assert not collided_tile.will_block_egg
                 self._points += collided_tile.points_added
                 resulting_grid[point.x][point.y] = Grass(point)
 
+                # may not be good OCP-wise
+                if isinstance(resulting_grid[next_i][next_j], EmptyNest):
+                    resulting_grid[next_i][next_j] = OccupiedNest(next_point)
 
         return tuple(tuple(row) for row in resulting_grid)
     
