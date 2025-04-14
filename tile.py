@@ -1,7 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from project_types import Point
-
+from point import Point
 
 @dataclass
 class Tile(ABC):
@@ -52,3 +51,5 @@ class OccupiedNest(Tile):
     will_block_egg: bool= True
     will_eat_egg: bool= False
     points_added: int= 0
+
+tile_classes = (Egg, EmptyNest, Grass, OccupiedNest, Pan, Wall)

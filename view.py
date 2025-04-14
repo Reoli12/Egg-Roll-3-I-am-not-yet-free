@@ -1,12 +1,14 @@
+import time
 import sys
 import os
 
-from type_aliases import Grid
-from project_types import Arrow, DisplayContent
+# from type_aliases import Grid
+from project_types import Arrow, DisplayContent, Grid
 
 class EggRollView:
     def show_movements_to_user(self, display_frames: tuple[DisplayContent, ...]):
         for frame in display_frames:
+            time.sleep(0.35)
             self.clear_screen()
             self.print_display(frame)
 
@@ -18,7 +20,7 @@ class EggRollView:
         print(f'moves left: {n} ')
 
     def print_previous_moves(self, prev_moves: list[Arrow]):
-        print('previous moves:', *prev_moves, sep = ' ')
+        print('previous moves:', *(arrow.value for arrow in prev_moves), sep = ' ')
 
     def print_points(self, n: int):
         print(f'points: ', n)

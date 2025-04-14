@@ -1,6 +1,7 @@
-from project_types import Arrow, DisplayContent, Feedback, Order, Point, RunningStatus
+from project_types import Arrow, DisplayContent, Grid, Feedback, Order, RunningStatus
 from tile import Egg, Grass, EmptyNest, OccupiedNest
-from type_aliases import Grid
+from point import Point
+# from type_aliases import Grid
 
 
 class EggRollModel:
@@ -12,36 +13,15 @@ class EggRollModel:
         
         self._points = 0
         self._current_grid = grid
-        # self._intermediary_grid: Grid | None = None
         self._len_y = len(self._current_grid)
         self._len_x = len(self._current_grid[0])
         self._egg_coords = [Point(i, j) for i in range(self._len_y) for j in range(self._len_x)
                             if self._is_inside(i, j) and self._current_grid[i][j].display == '🥚']
-        # print(self._egg_coords)
 
         self._previous_moves: list[Arrow] = []
         self._remaining_moves = move_count
 
         self._movement_frames: list[DisplayContent] | None = None
-
-    # @property
-    # def current_points(self):
-    #     return self._points
-    
-    # @property
-
-    # def previous_moves(self):
-    #     return tuple(arrow.value for arrow in self._previous_moves)
-
-    # @property
-    # # not sure if needed, because the Grid type is immutable anyway.
-    # def current_grid(self):
-    #     return self._current_grid
-    
-    # @property
-    # def intermediary_grid(self):
-    #     ''' returns a grid after each egg has moved at most one tile towards the current direction'''
-    #     return self._intermediary_grid
     
     @property
     def moves_left(self):
@@ -78,10 +58,13 @@ class EggRollModel:
 
         resulting_grid: Grid = self._current_grid
         for order in user_moves:
+            self._remaining_moves -= 1
             resulting_grid = self._process_one_move(resulting_grid, order)
             self._previous_moves.append(order.value)
-            self._remaining_moves -= 1
             
+
+        #update grid here: current bug is current grid reverts to initial grid after roll finishes
+        self._current_grid = resulting_grid   
         return resulting_grid
     
     def _process_one_move(self, grid: Grid, user_move: Order) -> Grid:
@@ -110,10 +93,8 @@ class EggRollModel:
 
         for point in sorted_coords:
 
-            assert isinstance(resulting_grid[point.i][point.j], Egg)
+            assert isinstance(resulting_grid[point.i][point.j], Egg), f'({point.i}, {point.j})'
 
-            # print(point)
-            # print(resulting_grid[point.i][point.j].display)
             next_i, next_j = self._get_direction(user_move)
             next_i += point.i
             next_j += point.j
@@ -143,7 +124,6 @@ class EggRollModel:
         
         self._egg_coords = list(_ for _ in surviving_egg_coords)
 
-        # print(*((''.join(tuple(tile.display for tile in row))) for row in resulting_grid), sep = '\n')
         return tuple(tuple(row) for row in resulting_grid)
     
     def reset_movement_frames(self):
@@ -153,11 +133,13 @@ class EggRollModel:
     def _rearrange_based_on_direction(self, coords: list[Point], direction: Order) -> list[Point]:
         match direction:
             case Order.RIGHT:
-                return coords[::-1]
+                return sorted(coords, reverse= True, key = lambda point: point.j)
             case Order.BACK:
                 return sorted(coords, reverse= True, key = lambda point: point.i)
-            case _:
-                return coords
+            case Order.LEFT:
+                return sorted(coords, key = lambda point: point.j)
+            case Order.FRONT:
+                return sorted(coords, key = lambda point: point.i)
             
     def _get_direction(self, user_move: Order) -> tuple[int, int]:
         match user_move:
@@ -174,7 +156,7 @@ class EggRollModel:
         valid_orders = set(('f', 'b', 'l', 'r'))
         order_chars = set(orders)
 
-        if not valid_orders | order_chars:
+        if not valid_orders & order_chars:
             return Feedback.INVALID
         return Feedback.VALID
     

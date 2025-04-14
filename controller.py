@@ -15,6 +15,8 @@ class EggRollController:
         # then just go through them in controller to print
         while self.model.running_status is RunningStatus.ONGOING:
             while True:
+                self.view.clear_screen()
+                self.view.print_display(self.model.display_content)
                 user_moves = self.view.get_user_moves()
                 match self.model.get_feedback(user_moves):
                     case Feedback.VALID:
