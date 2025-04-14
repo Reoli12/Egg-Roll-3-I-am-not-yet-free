@@ -1,4 +1,4 @@
-from project_types import Arrow, Order, Point
+from project_types import Arrow, DisplayContent, Feedback, Order, Point, RunningStatus
 from tile import Egg, Grass, EmptyNest, OccupiedNest
 from type_aliases import Grid
 
@@ -11,30 +11,30 @@ class EggRollModel:
             raise ValueError('Must have a positive amount of moves! ')
         
         self._points = 0
-        self._previous_moves = []
         self._current_grid = grid
         self._intermediary_grid: Grid | None = None
         self._len_y = len(self._current_grid)
         self._len_x = len(self._current_grid[0])
         self._egg_coords = [Point(i, j) for i in range(self._len_y) for j in range(self._len_x)
                             if self._is_inside(i, j) and self._current_grid[i][j].display == '🥚']
-        print(self._egg_coords)
+        # print(self._egg_coords)
 
         self._previous_moves: list[Arrow] = []
         self._remaining_moves = move_count
 
-    @property
-    def current_points(self):
-        return self._points
+    # @property
+    # def current_points(self):
+    #     return self._points
     
-    @property
-    def previous_moves(self):
-        return tuple(arrow.value for arrow in self._previous_moves)
+    # @property
 
-    @property
-    # not sure if needed, because the Grid type is immutable anyway.
-    def current_grid(self):
-        return self._current_grid
+    # def previous_moves(self):
+    #     return tuple(arrow.value for arrow in self._previous_moves)
+
+    # @property
+    # # not sure if needed, because the Grid type is immutable anyway.
+    # def current_grid(self):
+    #     return self._current_grid
     
     @property
     def intermediary_grid(self):
@@ -44,11 +44,26 @@ class EggRollModel:
     @property
     def moves_left(self):
         return self._remaining_moves
+    
+    @property
+    def running_status(self):
+        return (RunningStatus.ONGOING if self._egg_coords and self._remaining_moves > 0 
+        else RunningStatus.DONE)
+            
+    @property
+    def display_content(self):
+        return DisplayContent(
+            self._current_grid,
+            self._previous_moves,
+            self._remaining_moves,
+            self._points
+        )
 
     def _is_inside(self, row_num: int, col_num: int) -> bool:
         return 0 <= row_num < self._len_y and 0 <= col_num < self._len_x
     
     def roll(self, user_moves: list[Order]) -> Grid:
+        # may be delegated to controller instead.
         if not user_moves:
             raise ValueError('should not happen! ')
         
@@ -62,9 +77,7 @@ class EggRollModel:
     
     def _process_one_move(self, grid: Grid, user_move: Order) -> Grid:
         current_grid = grid
-        while self._egg_coords:
-            # print('still in loop')
-            print(self._egg_coords)
+        while True:
             grid_eggs_next_step = self._step_once(current_grid, user_move)
             # actual bug: HOLY SHIT THE INPUT ABOVE WAS grid INSTEAD OF current_grid!!
             if current_grid == grid_eggs_next_step:
@@ -82,8 +95,8 @@ class EggRollModel:
 
             assert isinstance(resulting_grid[point.i][point.j], Egg)
 
-            print(point)
-            print(resulting_grid[point.i][point.j].display)
+            # print(point)
+            # print(resulting_grid[point.i][point.j].display)
             next_i, next_j = self._get_direction(user_move)
             next_i += point.i
             next_j += point.j
@@ -112,7 +125,7 @@ class EggRollModel:
         
         self._egg_coords = list(_ for _ in surviving_egg_coords)
 
-        print(*((''.join(tuple(tile.display for tile in row))) for row in resulting_grid), sep = '\n')
+        # print(*((''.join(tuple(tile.display for tile in row))) for row in resulting_grid), sep = '\n')
         return tuple(tuple(row) for row in resulting_grid)
     
     def _rearrange_based_on_direction(self, coords: list[Point], direction: Order) -> list[Point]:
@@ -134,6 +147,28 @@ class EggRollModel:
                 return 0, -1
             case Order.RIGHT:
                 return 0, 1
+            
+    def get_feedback(self, orders: str) -> Feedback:
+        valid_orders = set(('f', 'b', 'l', 'r'))
+        order_chars = set(orders)
+
+        if not valid_orders | order_chars:
+            return Feedback.INVALID
+        return Feedback.VALID
+    
+    def parse_user_moves(self, user_moves: str):
+        char_to_order_mapping = {
+            'l' : Order.LEFT,
+            'r' : Order.RIGHT,
+            'f' : Order.FRONT,
+            'b' : Order.BACK
+        }
+        res: list[Order] = []
+
+        for char in user_moves:
+            if char in char_to_order_mapping:
+                res.append(char_to_order_mapping[char])
+        return res
 
     
 
