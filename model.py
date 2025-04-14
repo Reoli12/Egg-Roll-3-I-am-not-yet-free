@@ -15,13 +15,29 @@ class EggRollModel:
         self._current_grid = grid
         self._len_y = len(self._current_grid)
         self._len_x = len(self._current_grid[0])
-        # print(self._len_x, self._len_y)
-        self._egg_coords = [Point(i, j) for i in range(self._len_x) for j in range(self._len_y)
+        self._egg_coords = [Point(i, j) for i in range(self._len_y) for j in range(self._len_x)
                             if self._is_inside(i, j) and self._current_grid[i][j].display == '🥚']
         print(self._egg_coords)
 
         self._previous_moves: list[Arrow] = []
         self._remaining_moves = move_count
+
+    @property
+    def current_points(self):
+        return self._points
+    
+    @property
+    def previous_moves(self):
+        return tuple(arrow.value for arrow in self._previous_moves)
+
+    @property
+    # not sure if needed, because the Grid type is immutable anyway.
+    def current_grid(self):
+        return self._current_grid
+    
+    @property
+    def moves_left(self):
+        return self._remaining_moves
 
     def _is_inside(self, row_num: int, col_num: int) -> bool:
         return 0 <= row_num < self._len_y and 0 <= col_num < self._len_x
@@ -33,6 +49,8 @@ class EggRollModel:
         resulting_grid: Grid = self._current_grid
         for order in user_moves:
             resulting_grid = self._process_one_move(resulting_grid, order)
+            self._previous_moves.append(order.value)
+            self._remaining_moves -= 1
             
         return resulting_grid
     
