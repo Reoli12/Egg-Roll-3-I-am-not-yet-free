@@ -22,6 +22,8 @@ class EggRollModel:
         self._previous_moves: list[Arrow] = []
         self._remaining_moves = move_count
 
+        self._movement_frames: list[DisplayContent] | None = None
+
     # @property
     # def current_points(self):
     #     return self._points
@@ -54,19 +56,26 @@ class EggRollModel:
     def display_content(self):
         return DisplayContent(
             self._current_grid,
-            self._previous_moves,
+            list(self._previous_moves),
             self._remaining_moves,
             self._points
         )
+    
+    @property
+    def movement_frames(self):
+        assert self._movement_frames is not None, 'should be a list'
+        return tuple(self._movement_frames)
 
     def _is_inside(self, row_num: int, col_num: int) -> bool:
         return 0 <= row_num < self._len_y and 0 <= col_num < self._len_x
     
     def roll(self, user_moves: list[Order]) -> Grid:
-        # may be delegated to controller instead.
         if not user_moves:
             raise ValueError('should not happen! ')
         
+        assert self._movement_frames is None, 'should have been cleared before this'
+        self._movement_frames = []
+
         resulting_grid: Grid = self._current_grid
         for order in user_moves:
             resulting_grid = self._process_one_move(resulting_grid, order)
@@ -76,6 +85,9 @@ class EggRollModel:
         return resulting_grid
     
     def _process_one_move(self, grid: Grid, user_move: Order) -> Grid:
+        
+        assert isinstance(self._movement_frames, list), 'should have been initialized as such before'
+
         current_grid = grid
         while True:
             grid_eggs_next_step = self._step_once(current_grid, user_move)
@@ -83,6 +95,11 @@ class EggRollModel:
             if current_grid == grid_eggs_next_step:
                 break
             current_grid = grid_eggs_next_step
+            current_game_state = DisplayContent(
+                current_grid, self._previous_moves, self._remaining_moves, self._points
+            )
+            self._movement_frames.append(current_game_state)
+
         return current_grid
         
     def _step_once(self, grid: Grid, user_move: Order) -> Grid:
@@ -119,6 +136,7 @@ class EggRollModel:
                     # may not be good OCP-wise
                     if isinstance(resulting_grid[next_i][next_j], EmptyNest):
                         resulting_grid[next_i][next_j] = OccupiedNest(next_point)
+                        self._points += self._remaining_moves
 
                 case _:
                     assert False, 'should not reach here! (logic problem)'
@@ -127,6 +145,10 @@ class EggRollModel:
 
         # print(*((''.join(tuple(tile.display for tile in row))) for row in resulting_grid), sep = '\n')
         return tuple(tuple(row) for row in resulting_grid)
+    
+    def reset_movement_frames(self):
+        ''' should be run after every self.roll '''
+        self._movement_frames = None
     
     def _rearrange_based_on_direction(self, coords: list[Point], direction: Order) -> list[Point]:
         match direction:

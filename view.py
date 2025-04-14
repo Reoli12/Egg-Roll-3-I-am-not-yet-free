@@ -5,6 +5,11 @@ from type_aliases import Grid
 from project_types import Arrow, DisplayContent
 
 class EggRollView:
+    def show_movements_to_user(self, display_frames: tuple[DisplayContent, ...]):
+        for frame in display_frames:
+            self.clear_screen()
+            self.print_display(frame)
+
     def print_grid(self, grid: Grid):
         for row in grid:
             print(*(tile.display for tile in row), sep = '')
