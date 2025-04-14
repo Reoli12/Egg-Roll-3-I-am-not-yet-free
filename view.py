@@ -16,7 +16,7 @@ class EggRollView:
         print('previous moves:', *prev_moves, sep = ' ')
 
     def print_points(self, n: int):
-        print(n)
+        print(f'points: ', n)
 
     def take_user_input(self):
         return input('next move/s: ').strip().lower()
