@@ -15,8 +15,10 @@ class EggRollModel:
         self._current_grid = grid
         self._len_y = len(self._current_grid)
         self._len_x = len(self._current_grid[0])
+        # print(self._len_x, self._len_y)
         self._egg_coords = [Point(i, j) for i in range(self._len_x) for j in range(self._len_y)
-                            if self._current_grid[i][j].display is '🥚']
+                            if self._is_inside(i, j) and self._current_grid[i][j].display == '🥚']
+        print(self._egg_coords)
 
         self._previous_moves: list[Arrow] = []
         self._remaining_moves = move_count
@@ -36,19 +38,16 @@ class EggRollModel:
     
     def _process_one_move(self, grid: Grid, user_move: Order) -> Grid:
         current_grid = grid
-        while True:
-            grid_eggs_next_step = self._step_once(grid, user_move)
+        while self._egg_coords:
+            # print('still in loop')
+            print(self._egg_coords)
+            grid_eggs_next_step = self._step_once(current_grid, user_move)
+            # actual bug: HOLY SHIT THE INPUT ABOVE WAS grid INSTEAD OF current_grid!!
             if current_grid == grid_eggs_next_step:
                 break
+            current_grid = grid_eggs_next_step
         return current_grid
         
-    def _rearrange_based_on_direction(self, coords: list[Point], direction: Order) -> list[Point]:
-        match direction:
-            case Order.RIGHT | Order.BACK:
-                return coords[::-1]
-            case _:
-                return coords
-                
     def _step_once(self, grid: Grid, user_move: Order) -> Grid:
         sorted_coords: list[Point] = self._rearrange_based_on_direction(self._egg_coords, user_move)
         
@@ -56,45 +55,61 @@ class EggRollModel:
         surviving_egg_coords: list[Point] = []
 
         for point in sorted_coords:
+
+            assert isinstance(resulting_grid[point.i][point.j], Egg)
+
+            print(point)
+            print(resulting_grid[point.i][point.j].display)
             next_i, next_j = self._get_direction(user_move)
-            next_i += point.x
-            next_j += point.y
+            next_i += point.i
+            next_j += point.j
             next_point = Point(next_i, next_j)
             collided_tile = resulting_grid[next_i][next_j]
 
-            if not self._is_inside(next_i, next_j):
-                surviving_egg_coords.append(point)
-                continue
+            match collided_tile.will_block_egg, collided_tile.will_eat_egg:
+                case True, False:
+                    surviving_egg_coords.append(point)
 
-            if collided_tile.will_block_egg:
-                surviving_egg_coords.append(point)
-            else:
-                resulting_grid[next_i][next_j] = Egg(next_point)
-                resulting_grid[point.x][point.y] = Grass(point)
-                surviving_egg_coords.append(next_point)
+                case False, False:
+                    resulting_grid[next_i][next_j] = Egg(next_point)
+                    resulting_grid[point.i][point.j] = Grass(point)
+                    surviving_egg_coords.append(next_point)
 
-            if collided_tile.will_eat_egg:
-                assert not collided_tile.will_block_egg
-                self._points += collided_tile.points_added
-                resulting_grid[point.x][point.y] = Grass(point)
+                case False, True:
+                    self._points += collided_tile.points_added
+                    resulting_grid[point.i][point.j] = Grass(point)
 
-                # may not be good OCP-wise
-                if isinstance(resulting_grid[next_i][next_j], EmptyNest):
-                    resulting_grid[next_i][next_j] = OccupiedNest(next_point)
+                    # may not be good OCP-wise
+                    if isinstance(resulting_grid[next_i][next_j], EmptyNest):
+                        resulting_grid[next_i][next_j] = OccupiedNest(next_point)
 
+                case _:
+                    assert False, 'should not reach here! (logic problem)'
+        
+        self._egg_coords = list(_ for _ in surviving_egg_coords)
+
+        print(*((''.join(tuple(tile.display for tile in row))) for row in resulting_grid), sep = '\n')
         return tuple(tuple(row) for row in resulting_grid)
     
+    def _rearrange_based_on_direction(self, coords: list[Point], direction: Order) -> list[Point]:
+        match direction:
+            case Order.RIGHT:
+                return coords[::-1]
+            case Order.BACK:
+                return sorted(coords, reverse= True, key = lambda point: point.i)
+            case _:
+                return coords
+            
     def _get_direction(self, user_move: Order) -> tuple[int, int]:
         match user_move:
             case Order.FRONT:
-                return 0, -1
-            case Order.BACK:
-                return 0, 1
-            case Order.LEFT:
                 return -1, 0
-            case Order.RIGHT:
+            case Order.BACK:
                 return 1, 0
-
+            case Order.LEFT:
+                return 0, -1
+            case Order.RIGHT:
+                return 0, 1
 
     
 

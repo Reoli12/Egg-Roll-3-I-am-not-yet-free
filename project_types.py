@@ -19,8 +19,8 @@ class Order(Enum):
 
 @dataclass
 class Point:
-    x: int
-    y: int
+    i: int
+    j: int
 
 # class Tile(Enum):
 #     GRASS = auto()
