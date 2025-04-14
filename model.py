@@ -13,6 +13,7 @@ class EggRollModel:
         self._points = 0
         self._previous_moves = []
         self._current_grid = grid
+        self._intermediary_grid: Grid | None = None
         self._len_y = len(self._current_grid)
         self._len_x = len(self._current_grid[0])
         self._egg_coords = [Point(i, j) for i in range(self._len_y) for j in range(self._len_x)
@@ -34,6 +35,11 @@ class EggRollModel:
     # not sure if needed, because the Grid type is immutable anyway.
     def current_grid(self):
         return self._current_grid
+    
+    @property
+    def intermediary_grid(self):
+        ''' returns a grid after each egg has moved at most one tile towards the current direction'''
+        return self._intermediary_grid
     
     @property
     def moves_left(self):
