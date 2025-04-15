@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 from tile import Tile, tile_classes
-# from type_aliases import Grid
-
+from point import Point
 
 Grid = tuple[tuple[Tile, ...], ...]
 
@@ -27,14 +26,9 @@ class RunningStatus(Enum):
     DONE = auto()
 
 @dataclass
-class Point:
-    i: int
-    j: int
-
-@dataclass
 class DisplayContent:
     current_grid: Grid
-    previous_moves: list[Arrow]
+    previous_moves: tuple[Arrow, ...]
     moves_left: int
     points: int
 

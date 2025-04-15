@@ -1,8 +1,6 @@
 from project_types import Arrow, DisplayContent, Grid, Feedback, Order, RunningStatus
 from tile import Egg, Grass, EmptyNest, OccupiedNest
 from point import Point
-# from type_aliases import Grid
-
 
 class EggRollModel:
     def __init__(self, grid: Grid, move_count: int) -> None:
@@ -28,6 +26,10 @@ class EggRollModel:
         return self._remaining_moves
     
     @property
+    def previous_moves(self):
+        return tuple(self._previous_moves)
+    
+    @property
     def running_status(self):
         return (RunningStatus.ONGOING if self._egg_coords and self._remaining_moves > 0 
         else RunningStatus.DONE)
@@ -36,7 +38,7 @@ class EggRollModel:
     def display_content(self):
         return DisplayContent(
             self._current_grid,
-            list(self._previous_moves),
+            self.previous_moves,
             self._remaining_moves,
             self._points
         )
@@ -58,9 +60,11 @@ class EggRollModel:
 
         resulting_grid: Grid = self._current_grid
         for order in user_moves:
-            self._remaining_moves -= 1
-            resulting_grid = self._process_one_move(resulting_grid, order)
-            self._previous_moves.append(order.value)
+            if self.running_status is not RunningStatus.DONE:
+                self._previous_moves.append(order.value)
+                self._remaining_moves -= 1
+                resulting_grid = self._process_one_move(resulting_grid, order)
+                
             
 
         #update grid here: current bug is current grid reverts to initial grid after roll finishes
@@ -79,7 +83,7 @@ class EggRollModel:
                 break
             current_grid = grid_eggs_next_step
             current_game_state = DisplayContent(
-                current_grid, self._previous_moves, self._remaining_moves, self._points
+                current_grid, self.previous_moves, self._remaining_moves, self._points
             )
             self._movement_frames.append(current_game_state)
 

@@ -19,11 +19,11 @@ class EggRollView:
     def print_remaining_moves(self, n: int):
         print(f'moves left: {n} ')
 
-    def print_previous_moves(self, prev_moves: list[Arrow]):
+    def print_previous_moves(self, prev_moves: tuple[Arrow, ...]):
         print('previous moves:', *(arrow.value for arrow in prev_moves), sep = ' ')
 
     def print_points(self, n: int):
-        print(f'points: ', n)
+        print('points:', n)
 
     def get_user_moves(self):
         return input('next move/s: ').strip().lower()
