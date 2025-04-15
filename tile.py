@@ -1,6 +1,10 @@
 from abc import ABC
 from dataclasses import dataclass
-from point import Point
+
+@dataclass
+class Point:
+    i: int
+    j: int
 
 @dataclass
 class Tile(ABC):

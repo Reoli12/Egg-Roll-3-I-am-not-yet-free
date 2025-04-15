@@ -1,5 +1,5 @@
 # quick fix to circular annotations
 
-from tile import Tile
+# from tile import Tile   
 
-Grid = tuple[tuple[Tile, ...], ...]
+# Grid = tuple[tuple[Tile, ...], ...]

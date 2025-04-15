@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from tile import Tile, tile_classes
-from point import Point
+from tile import Point, Tile, tile_classes
+
 
 Grid = tuple[tuple[Tile, ...], ...]
 

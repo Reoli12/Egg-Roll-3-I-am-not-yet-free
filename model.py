@@ -1,6 +1,6 @@
 from project_types import Arrow, DisplayContent, Grid, Feedback, Order, RunningStatus
-from tile import Egg, Grass, EmptyNest, OccupiedNest
-from point import Point
+from tile import Egg, Grass, EmptyNest, OccupiedNest, Point
+# from point import Point
 
 class EggRollModel:
     def __init__(self, grid: Grid, move_count: int) -> None:
@@ -65,8 +65,6 @@ class EggRollModel:
                 self._remaining_moves -= 1
                 resulting_grid = self._process_one_move(resulting_grid, order)
                 
-            
-
         #update grid here: current bug is current grid reverts to initial grid after roll finishes
         self._current_grid = resulting_grid   
         return resulting_grid
